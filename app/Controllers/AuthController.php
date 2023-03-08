@@ -4,6 +4,7 @@ declare( strict_types = 1 );
 
 namespace App\Controllers;
 
+use App\Contracts\AuthInterface;
 use App\Entity\User;
 use App\Exception\ValidationException;
 use Doctrine\ORM\EntityManager;
@@ -14,8 +15,11 @@ use Valitron\Validator;
 
 class AuthController
 {
-    public function __construct( private readonly Twig $twig, private readonly EntityManager $entityManager )
-    {
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly EntityManager $entityManager,
+        private readonly AuthInterface $auth
+    ) {
     }
 
     public function loginView( Request $request, Response $response )
@@ -70,21 +74,17 @@ class AuthController
         if ( !$validator->validate() ) {
         }
 
-        /** @var User $user */
-        $user = $this->entityManager->getRepository( User::class )->findOneBy( [ 'email' => $data[ 'email' ] ] );
-        if ( !$user || !password_verify( $data[ 'password' ], $user->getPassword() ) ) {
+        if ( !$this->auth->attemptLogin( $data ) ) {
             throw new ValidationException( [ 'password' => [ 'You have entered an invalid username or password' ] ] );
         }
-
-        session_regenerate_id();
-
-        $_SESSION[ 'user' ] = $user->getId();
 
         return $response->withHeader( 'Location', '/' )->withStatus( 302 );
     }
 
     public function logOut( Request $request, Response $response )
     {
+        $this->auth->logOut();
+
         return $response->withHeader( 'Location', '/' )->withStatus( 302 );
     }
 }
