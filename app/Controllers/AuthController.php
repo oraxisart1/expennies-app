@@ -43,12 +43,9 @@ class AuthController
             'email'
         )->message( 'User with the given email address already exists' );
 
-        if ( $validator->validate() ) {
-            echo 'Work';
-        } else {
+        if ( !$validator->validate() ) {
             throw new ValidationException( $validator->errors() );
         }
-        exit();
 
         $user = new User();
         $user
@@ -60,5 +57,34 @@ class AuthController
         $this->entityManager->flush();
 
         return $response;
+    }
+
+    public function logIn( Request $request, Response $response )
+    {
+        $data = $request->getParsedBody();
+
+        $validator = new Validator( $data );
+
+        $validator->rule( 'required', [ 'name', 'password', ] );
+        $validator->rule( 'email', 'email' );
+        if ( !$validator->validate() ) {
+        }
+
+        /** @var User $user */
+        $user = $this->entityManager->getRepository( User::class )->findOneBy( [ 'email' => $data[ 'email' ] ] );
+        if ( !$user || !password_verify( $data[ 'password' ], $user->getPassword() ) ) {
+            throw new ValidationException( [ 'password' => [ 'You have entered an invalid username or password' ] ] );
+        }
+
+        session_regenerate_id();
+
+        $_SESSION[ 'user' ] = $user->getId();
+
+        return $response->withHeader( 'Location', '/' )->withStatus( 302 );
+    }
+
+    public function logOut( Request $request, Response $response )
+    {
+        return $response->withHeader( 'Location', '/' )->withStatus( 302 );
     }
 }
