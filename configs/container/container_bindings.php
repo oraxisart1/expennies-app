@@ -10,6 +10,7 @@ use App\Contracts\UserProviderServiceInterface;
 use App\DataObjects\SessionConfig;
 use App\Enum\AppEnvironment;
 use App\Enum\SameSite;
+use App\RequestValidators\RequestValidatorFactory;
 use App\Services\UserProviderService;
 use App\Session;
 use Doctrine\ORM\EntityManager;
@@ -89,4 +90,5 @@ return [
             SameSite::tryFrom( $config->get( 'session.samesite', 'lax' ) )
         )
     ),
+    \App\Contracts\RequestValidatorFactoryInterface::class => fn(ContainerInterface $container) => $container->get( RequestValidatorFactory::class )
 ];
