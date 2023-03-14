@@ -62,7 +62,6 @@ class Auth implements AuthInterface
     {
         $this->session->forget( 'user' );
         $this->session->regenerate();
-        unset( $_SESSION[ 'user' ] );
         $this->user = null;
     }
 }

@@ -17,4 +17,10 @@ interface SessionInterface
     public function put( string $key, mixed $value ): void;
 
     public function forget( string $key ): void;
+
+    public function has( string $key ): bool;
+
+    public function flash( string $key, array $messages ): void;
+
+    public function getFlash( string $key ): array;
 }
